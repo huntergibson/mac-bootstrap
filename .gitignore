@@ -1,0 +1,35 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Node / JS
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp/
+.pnp.js
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+.env.*
+
+# VS Code
+.vscode/
+history/
+workspaceStorage/
+*.code-workspace
+
+# Misc
+*.log
+*.tmp
+*.swp
+.idea/
+dist/
+build/
+coverage/
