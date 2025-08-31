@@ -1,25 +1,37 @@
 #!/usr/bin/env bash
-# ----------------------------------------------------------
 # Stage 40: Dock layout and behavior
-#  - Autohide and icon size
-#  - Clear existing items and add desired apps in order
-# ----------------------------------------------------------
 set -euo pipefail
+. "$(cd "$(dirname "$0")" && pwd)/_lib.sh"
 
-echo "Customizing Dock..."
+step "Customizing Dock (always visible, set order)"
 
-# Behavior: autohide + icon size
-defaults write com.apple.dock autohide -bool true
-defaults write com.apple.dock tilesize -int 36
+# Always show Dock (no autohide) and set icon size
+run defaults write com.apple.dock autohide -bool false
+run defaults write com.apple.dock tilesize -int 36
 
-# Build Dock using dockutil (installed via Brewfile)
-if command -v dockutil >/dev/null 2>&1; then
-  dockutil --remove all --no-restart || true
-  dockutil --add "/Applications/Google Chrome.app" --no-restart || true
-  dockutil --add "/Applications/Notion.app" --no-restart || true
-  dockutil --add "/Applications/Visual Studio Code.app" --no-restart || true
-  dockutil --add "/Applications/Microsoft Excel.app" --no-restart || true
-fi
+# Need dockutil (installed in Stage 20)
+require dockutil
 
-# Restart Dock to apply
-killall Dock || true
+# Rebuild Dock
+run dockutil --remove all --no-restart
+
+APPS=(
+  "/Applications/Google Chrome.app"
+  "/Applications/Notion.app"
+  "/Applications/Visual Studio Code.app"
+  "/Applications/Microsoft Excel.app"
+)
+
+for app in "${APPS[@]}"; do
+  name="$(basename "$app" .app)"
+  if [[ -e "$app" ]]; then
+    run dockutil --add "$app" --no-restart
+    ok "Added $name"
+  else
+    warn "Skipping $name — not installed yet. Re-run scripts/40_dock.sh after apps install."
+  fi
+done
+
+# Apply changes
+run killall Dock || true
+ok "Dock updated"

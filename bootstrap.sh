@@ -1,40 +1,46 @@
 #!/usr/bin/env bash
-# ----------------------------------------------------------
-# Bootstrap entry point
-# Runs each setup stage in a safe, idempotent order.
-#  1) Ensure admin privileges / Rosetta on Apple silicon
-#  2) Install Xcode CLT + Homebrew
-#  3) Install everything from Brewfile
-#  4) Apply macOS defaults (Finder, screenshots)
-#  5) Build Dock layout
-#  6) Dotfiles, Git defaults, SSH key generation
-#  7) Languages & global tools (Node via fnm, Python via uv/pipx)
-#  8) Start services (Postgres)
-#  9) Post‑install (VS Code extensions + settings)
-# ----------------------------------------------------------
+# Bootstrap entry point — color logs, strict errors, safe order
 set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+. "$SCRIPT_DIR/scripts/_lib.sh"
 
-# Keep sudo alive for the whole run so prompts don’t interrupt
-if ! sudo -v; then echo "sudo required"; exit 1; fi
+step "Requesting sudo keepalive"
+if ! sudo -v; then die "sudo required"; fi
 while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
 
-# If Apple Silicon, ensure Rosetta for best compatibility
+# Rosetta for Apple Silicon (if needed)
 if [[ "$(uname -m)" == "arm64" ]]; then
   if ! /usr/bin/pgrep oahd >/dev/null 2>&1; then
-    echo "Installing Rosetta 2 (if prompted, accept license)..."
-    softwareupdate --install-rosetta --agree-to-license || true
+    step "Installing Rosetta 2 (accept license if prompted)"
+    run softwareupdate --install-rosetta --agree-to-license
   fi
 fi
 
-# Run the setup stages (each script is safe to re‑run)
+step "Stage 10: Xcode Command Line Tools + Homebrew"
 ./scripts/10_xcode_homebrew.sh
-./scripts/20_brew_bundle.sh
-./scripts/30_macos_defaults.sh
-./scripts/40_dock.sh || true
-./scripts/50_shell_git.sh
-./scripts/55_code_folders.sh   # ← create ~/Code/{personal,work,sandbox,archived}
-./scripts/70_languages.sh
-./scripts/80_services.sh || true
-./scripts/90_postinstall.sh || true
 
-echo "✅ All done. Some changes may need a logout/restart."
+step "Stage 20: Install packages/apps from Brewfile"
+./scripts/20_brew_bundle.sh
+
+step "Stage 30: Apply macOS defaults"
+./scripts/30_macos_defaults.sh
+
+step "Stage 40: Customize Dock"
+./scripts/40_dock.sh
+
+step "Stage 50: Shell & Git dotfiles"
+./scripts/50_shell_git.sh
+
+step "Stage 55: Create ~/Code folders"
+./scripts/55_code_folders.sh
+
+step "Stage 70: Languages & global dev tools"
+./scripts/70_languages.sh
+
+step "Stage 80: Start background services"
+./scripts/80_services.sh
+
+step "Stage 90: VS Code extensions, settings & keybindings"
+./scripts/90_postinstall.sh
+
+ok "All done. Some changes may need a logout/restart."
