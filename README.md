@@ -2,12 +2,12 @@
 
 Bring a brand-new Mac to “ready for work” with a single command. This repo installs the apps you use every day, dials in macOS settings, sets up the Dock, drops in your wallpaper, and gets your shell, runtimes, and editor feeling like home.
 
-> Copy, paste, breathe:
+> Copy, paste, go:
 > ```bash
 > git clone https://github.com/huntergibson/mac-bootstrap.git && cd mac-bootstrap && ./bootstrap.sh
 > ```
 
-The main script explains every step while it runs, asks for permissions up front, and retries common hiccups. If you rerun it later, it simply tops things up—no angry surprises.
+The main script explains every step while it runs, asks for permissions up front, and retries common errors. If you rerun it later, it simply tops things up.
 
 ---
 
@@ -35,11 +35,11 @@ Every stage leans on the shared helper file [`scripts/_lib.sh`](scripts/_lib.sh)
 
 - **Browsers & productivity:** Google Chrome, Arc, Notion, Notion Calendar, Microsoft Office (Excel, Word, PowerPoint), OneDrive, GitHub Desktop, Chrome Remote Desktop Host.
 - **Developer essentials:** VS Code, Warp, Cursor, Kiro, Docker Desktop, DBeaver, PostgreSQL 16, Raspberry Pi Imager, Raycast, Rectangle, MonitorControl, Hidden Bar, Stats.
-- **Command-line goodies:** git, GitHub CLI, jq, ripgrep, fd, eza, bat, fzf, zoxide, tree, wget, httpie, tldr, git-delta, plus Node’s `pnpm`, `fnm`, and the `uv` toolkit.
+- **Command-line tools:** git, GitHub CLI, jq, ripgrep, fd, eza, bat, fzf, zoxide, tree, wget, httpie, tldr, git-delta, plus Node’s `pnpm`, `fnm`, and the `uv` toolkit.
 - **Global dev helpers:** TypeScript and friends via `pnpm`, and `black`, `ruff`, `mypy`, `pre-commit`, `httpx` through `pipx`.
 - **Quality-of-life polish:** Shared dotfiles, clean Git config includes, the `~/Code` folder structure, curated wallpaper, tuned Dock, and friendlier macOS defaults.
 
-For the complete list (with comments grouped by category) crack open the [`Brewfile`](Brewfile).
+For the complete list (with comments grouped by category) open the [`Brewfile`](Brewfile).
 
 ---
 
