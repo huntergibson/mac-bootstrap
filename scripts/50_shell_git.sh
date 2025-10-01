@@ -111,8 +111,27 @@ mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
 EMAIL="$(git config --global user.email 2>/dev/null || true)"
 if [[ -z "${EMAIL}" ]]; then EMAIL="$USER@$(scutil --get LocalHostName 2>/dev/null || hostname)"; fi
 if [[ ! -f "$HOME/.ssh/id_ed25519" ]]; then
-  info "Generating new ed25519 key for $EMAIL"
-  run ssh-keygen -t ed25519 -C "$EMAIL" -N "" -f "$HOME/.ssh/id_ed25519"
+  info "No SSH key found at $HOME/.ssh/id_ed25519"
+  generate="N"
+  if [[ -t 0 ]]; then
+    read -r -p "Generate a new ed25519 SSH key for GitHub? [Y/n] " answer
+    answer="${answer:-Y}"
+    [[ "$answer" =~ ^[Yy]$ ]] && generate="Y"
+  fi
+  if [[ "$generate" == "Y" ]]; then
+    passphrase=""
+    if [[ -t 0 ]]; then
+      read -r -p "Optional passphrase (leave blank for none): " passphrase
+    fi
+    info "Generating new ed25519 key for $EMAIL"
+    if [[ -n "$passphrase" ]]; then
+      run ssh-keygen -t ed25519 -C "$EMAIL" -N "$passphrase" -f "$HOME/.ssh/id_ed25519"
+    else
+      run ssh-keygen -t ed25519 -C "$EMAIL" -N "" -f "$HOME/.ssh/id_ed25519"
+    fi
+  else
+    warn "Skipped SSH key generation; manage keys manually if needed."
+  fi
 else
   info "SSH key already exists — skipping generation"
 fi
@@ -129,32 +148,45 @@ step "Shell & Git setup (4/4): upload SSH public key to GitHub"
 PUBKEY_PATH="$HOME/.ssh/id_ed25519.pub"
 require ssh
 require ssh-keygen
-if [[ ! -f "$PUBKEY_PATH" ]]; then err "Public key missing at $PUBKEY_PATH"; exit 1; fi
 
-TITLE="$(scutil --get ComputerName 2>/dev/null || hostname)-$(date +%Y%m%d-%H%M%S)"
-PUB="$(cat "$PUBKEY_PATH")"
-
-# gh-only authentication: user performs 'gh auth login' manually
-if ! command -v gh >/dev/null 2>&1; then
-  warn "GitHub CLI (gh) not found — install with: brew install gh"
+if [[ ! -f "$PUBKEY_PATH" ]]; then
+  warn "Public key missing at $PUBKEY_PATH; skipping GitHub upload."
+  info "Run 'ssh-keygen -t ed25519 -C you@example.com' and re-run this stage to upload later."
 else
-  if gh auth status -h github.com >/dev/null 2>&1; then
-    info "gh is authenticated; adding SSH key to your GitHub account"
-    if gh ssh-key add "$PUBKEY_PATH" -t "$TITLE" --type authentication; then
-      ok "SSH key uploaded via gh CLI"
-    else
-      warn "Failed to upload key via gh (it may already exist). You can manage keys in GitHub → Settings → SSH and GPG keys."
-    fi
-  else
-    warn "gh is not authenticated."
-    info "Run: gh auth login -h github.com -p https -s admin:public_key"
-    info "Then re-run: scripts/50_shell_git.sh"
-  fi
-fi
+  TITLE="$(scutil --get ComputerName 2>/dev/null || hostname)-$(date +%Y%m%d-%H%M%S)"
+  PUB="$(cat "$PUBKEY_PATH")"
 
-# Always show the public key so the user can copy if needed
-info "\n👉 SSH public key (add to GitHub if needed):"
-cat "$PUBKEY_PATH" || true
+  # gh-only authentication: user performs 'gh auth login' manually
+  if ! command -v gh >/dev/null 2>&1; then
+    warn "GitHub CLI (gh) not found — install with: brew install gh"
+  else
+    if gh auth status -h github.com >/dev/null 2>&1; then
+      upload="N"
+      if [[ -t 0 ]]; then
+        read -r -p "Upload $PUBKEY_PATH to GitHub via gh now? [y/N] " choice
+        [[ "$choice" =~ ^[Yy]$ ]] && upload="Y"
+      fi
+      if [[ "$upload" == "Y" ]]; then
+        info "gh is authenticated; uploading SSH key to your GitHub account"
+        if gh ssh-key add "$PUBKEY_PATH" -t "$TITLE" --type authentication; then
+          ok "SSH key uploaded via gh CLI"
+        else
+          warn "Failed to upload key via gh (it may already exist). You can manage keys in GitHub → Settings → SSH and GPG keys."
+        fi
+      else
+        info "Skipped GitHub SSH key upload. Run this stage again later if you change your mind."
+      fi
+    else
+      warn "gh is not authenticated."
+      info "Run: gh auth login -h github.com -p https -s admin:public_key"
+      info "Then re-run: scripts/50_shell_git.sh"
+    fi
+  fi
+
+  # Always show the public key so the user can copy if needed
+  info "\n👉 SSH public key (add to GitHub if needed):"
+  cat "$PUBKEY_PATH" || true
+fi
 
 ok "Shell + Git setup complete"
 if command -v gh >/dev/null 2>&1; then
