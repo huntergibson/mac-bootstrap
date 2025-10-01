@@ -32,3 +32,14 @@ fi
 if [[ -f ~/.fzf.zsh ]]; then
   source ~/.fzf.zsh
 fi
+
+# pnpm
+export PNPM_HOME="$HOME/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
+
+# Created by `pipx`
+export PATH="$PATH:$HOME/.local/bin"

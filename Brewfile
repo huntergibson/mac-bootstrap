@@ -4,9 +4,6 @@
 # Tip: comment out lines you don't want before first run.
 # ==========================================================
 
-# ----- Package repositories (taps) -----
-brew "homebrew/cask-fonts"
-
 # ----- Core CLI & utilities (terminal tools you’ll use everywhere) -----
 brew "git"           # version control
 brew "gh"            # GitHub CLI
@@ -34,7 +31,7 @@ brew "pnpm"          # preferred JS package manager
 brew "postgresql@16" # Postgres database server (started via brew services)
 
 # ----- Dock management helper -----
-brew "hpedrorodrigues/tools/dockutil" # reliable Dock add/remove/move
+brew "dockutil" # reliable Dock add/remove/move
 
 # ----- GUI Apps: Browsers -----
 cask "google-chrome"   # primary browser

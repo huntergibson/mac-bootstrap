@@ -1,24 +1,7 @@
-[user]
-	name = Hunter Gibson
-	email = hutergibson746@gmail.com
-[init]
-	defaultBranch = main
-[core]
-	editor = code --wait
-[diff]
-	tool = vscode
-[difftool "vscode"]
-	cmd = code --wait --diff $LOCAL $REMOTE
-[merge]
-	tool = vscode
-[mergetool "vscode"]
-	cmd = code --wait $MERGED
-[pull]
-	rebase = false
-[color]
-	ui = auto
-[interactive]
-	diffFilter = delta --color-only
-[delta]
-	navigate = true
-	line-numbers = true
+[include]
+  path = /Users/Shared/mac-bootstrap-2/dotfiles/.gitconfig.shared
+
+# Put your identity here or run this script interactively:
+# [user]
+#   name = Your Name
+#   email = you@example.com

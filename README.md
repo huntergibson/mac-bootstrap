@@ -15,8 +15,10 @@ A clean, one‑command setup for a fresh Mac tailored to **your** stack: Chrome 
 
 ## ✨ Features
 - **One‑liner install** that sets up dev tools, apps, and preferences
+- **Preflight prompts up front** (sudo, Git identity, optional GitHub auth, Automation consent)
 - **Homebrew Bundle** to install/categorize apps & CLIs
-- **Finder/Dock defaults** + curated Dock (Chrome → Notion → VS Code → Excel)
+- **macOS defaults + curated Dock** (Chrome → Notion → VS Code → Excel)
+- **Wallpaper applied after Dock** so it persists (robust Dock DB update + AppleScript fallback)
 - **VS Code**: your extensions auto‑install, key settings applied, **Shift+Enter** runs selection in Jupyter Interactive (Python)
 - **Languages**: Node (via `fnm` + `pnpm`), Python (via `uv` & helpers)
 - **Databases**: PostgreSQL 16 (brew service), DBeaver GUI
@@ -32,7 +34,20 @@ A clean, one‑command setup for a fresh Mac tailored to **your** stack: Chrome 
 git clone https://github.com/YOUR_GITHUB_USER/mac-bootstrap.git && cd mac-bootstrap && ./bootstrap.sh
 ```
 
-> Tip: After the run, sign into apps on first launch (Chrome, Arc, Docker Desktop, Excel/Word/PowerPoint, Notion, OneDrive, Discord, Spotify, Chrome Remote Desktop).
+You’ll be asked early (once): your admin password, Git name/email (if missing), optional `gh auth login` (to upload your SSH key), and macOS Automation approval (for wallpaper). After the run, sign into apps on first launch (Chrome, Arc, Docker Desktop, Excel/Word/PowerPoint, Notion, OneDrive, Discord, Spotify, Chrome Remote Desktop).
+
+### Stage map
+1. Preflight: sudo keepalive, Git identity, optional GitHub auth, Automation prompt
+2. 10 — Xcode Command Line Tools & Homebrew
+3. 20 — Install apps with Homebrew Bundle
+4. 30 — macOS defaults (Finder, screenshots)
+5. 40 — Dock customization
+6. 45 — Wallpaper (after Dock)
+7. 50 — Shell & Git setup (symlink `.zshrc`, SSH key, git include)
+8. 55 — Create `~/Code` folders
+9. 70 — Languages & global dev tools
+10. 80 — Services overview (no persistent background services)
+11. 90 — VS Code extensions, settings & keybindings
 
 ### What it installs (high level)
 - **Browsers**: Chrome, Arc
@@ -53,8 +68,9 @@ Full list lives in the [Brewfile](./Brewfile) (categorized & commented).
 1. **Create a new macOS user** (Admin) named “Bootstrap Test” and log into it.
 2. Clone this repo and run stages individually before the full bootstrap:
    ```bash
-   ./scripts/30_macos_defaults.sh     # Finder/Dock defaults
+   ./scripts/30_macos_defaults.sh     # Finder defaults (no wallpaper)
    ./scripts/40_dock.sh               # Dock layout
+   ./scripts/45_wallpaper.sh          # Apply wallpaper (after Dock)
    ./scripts/90_postinstall.sh        # VS Code extensions/settings
    ./scripts/10_xcode_homebrew.sh     # CLT + Homebrew
    ./scripts/20_brew_bundle.sh        # installs apps/CLIs from Brewfile
@@ -74,17 +90,21 @@ Full list lives in the [Brewfile](./Brewfile) (categorized & commented).
 - **Apps/CLIs** → edit [Brewfile](./Brewfile). It’s split into clear sections.
 - **macOS defaults** → tweak [scripts/30_macos_defaults.sh](./scripts/30_macos_defaults.sh).
 - **Dock** → edit [scripts/40_dock.sh](./scripts/40_dock.sh) (uses `dockutil`).
+- **Wallpaper** → adjust [scripts/45_wallpaper.sh](./scripts/45_wallpaper.sh) or replace `assets/wallpapers/default.jpg`.
 - **VS Code** → extensions & settings in [scripts/90_postinstall.sh](./scripts/90_postinstall.sh).
 - **Languages** → Node/Python bits in [scripts/70_languages.sh](./scripts/70_languages.sh).
 - **Folders** → adjust `~/Code` layout in [scripts/55_code_folders.sh](./scripts/55_code_folders.sh).
+ - **Git config** → shared, non‑personal settings in `dotfiles/.gitconfig.shared`; the run copies that to `~/.gitconfig.shared` and includes it from your `~/.gitconfig`.
 
 ---
 
 ## 🧯 Troubleshooting
 - **VS Code CLI not found**: Open VS Code once → Command+Shift+P → “Shell Command: Install ‘code’ in PATH”, then re‑run `scripts/90_postinstall.sh`.
+- **VS Code settings didn’t apply**: Stage 90 only merges settings if `~/Library/Application Support/Code/User` exists. Open VS Code once (to create it), then re‑run `scripts/90_postinstall.sh`.
+- **Wallpaper reverted**: It’s applied after Dock and written to Dock DBs and ByHost prefs. If it still reverts, ensure “Change picture” is off in System Settings → Wallpaper, then `./scripts/45_wallpaper.sh --flash`.
 - **Homebrew not on PATH**: open a new terminal or `eval "$('/opt/homebrew/bin/brew' shellenv)"`.
-- **TCC prompts (Accessibility, Screen Recording)**: approve manually when prompted—macOS requires your consent.
-- **Office sign‑in**: open Excel/Word/PowerPoint and sign in with your license.
+- **Automation prompts**: Approve Terminal/VS Code under System Settings → Privacy & Security → Automation.
+- **GitHub SSH key upload**: If you skipped `gh auth login`, run it later: `gh auth login -h github.com -p https -s admin:public_key`, then re‑run `scripts/50_shell_git.sh`.
 
 ---
 
@@ -97,8 +117,3 @@ Full list lives in the [Brewfile](./Brewfile) (categorized & commented).
 
 ## 📜 License
 MIT — see [LICENSE](./LICENSE).
-
----
-
-### Credits
-- Uses Homebrew, `dockutil`, VS Code, and AppleScript to automate a consistent macOS dev environment.

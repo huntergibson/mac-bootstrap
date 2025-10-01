@@ -12,10 +12,36 @@ fi
 step(){ echo; echo -e "${BOLD}${BLUE}==>${RESET} $*"; }
 ok(){   echo -e "${GREEN}✓${RESET} $*"; }
 warn(){ echo -e "${YELLOW}⚠${RESET} $*"; }
+info(){ echo -e "$*"; }
+err(){  echo -e "${RED}✗${RESET} $*"; }
 die(){  echo -e "${RED}✗${RESET} $*"; exit 1; }
 
 # Print command then run it (honors DRY_RUN=1)
-run(){ echo "+ $*"; [[ "${DRY_RUN:-}" == "1" ]] || eval "$@"; }
+run(){
+  local comment=""
+  if [[ "${1:-}" == "--comment" ]]; then
+    if [[ $# -lt 3 ]]; then
+      die "run --comment requires a message and a command"
+    fi
+    comment="$2"
+    shift 2
+  fi
+
+  if [[ -n "$comment" ]]; then
+    info "$comment"
+  fi
+
+  if [[ $# -eq 0 ]]; then
+    die "run requires a command"
+  fi
+
+  printf "+"
+  for arg in "$@"; do
+    printf " %q" "$arg"
+  done
+  printf "\n"
+  [[ "${DRY_RUN:-}" == "1" ]] || "$@"
+}
 
 # Require a command to exist
 require(){ command -v "$1" >/dev/null 2>&1 || die "Missing requirement: $1"; }
